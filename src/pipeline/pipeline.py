@@ -5,7 +5,7 @@ from extract.eurostat import load_df_raw_catalog
 from load import save_catalog
 from transform.transform import clean_catalog
 
-
+# General service
 def run_all():
     print("Running all pipelines")
     return None
