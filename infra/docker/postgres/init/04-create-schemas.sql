@@ -1,6 +1,0 @@
-DO $$
-BEGIN
-    CREATE SCHEMA IF NOT EXISTS staging AUTHORIZATION user_staging;
-    CREATE SCHEMA IF NOT EXISTS staging AUTHORIZATION user_ods;
-    CREATE SCHEMA IF NOT EXISTS staging AUTHORIZATION user_analitics;
-END $$;
