@@ -1,0 +1,8 @@
+\set ON_ERROR_STOP on
+\set VERBOSITY verbose
+\set ECHO all
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA staging TO staging_rw;
+GRANT SELECT ON ALL TABLES IN SCHEMA staging TO user_staging;
+-- Future objects
+ALTER DEFAULT PRIVILEGES FOR ROLE staging_owner IN SCHEMA staging
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES to staging_rw;
