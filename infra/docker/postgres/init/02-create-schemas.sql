@@ -2,6 +2,5 @@
 \set VERBOSITY verbose
 \set ECHO all
 CREATE SCHEMA IF NOT EXISTS staging AUTHORIZATION staging_owner;
-GRANT USAGE ON SCHEMA staging TO staging_rw;
 CREATE SCHEMA IF NOT EXISTS ods AUTHORIZATION user_ods;
 CREATE SCHEMA IF NOT EXISTS analytics AUTHORIZATION user_analytics;

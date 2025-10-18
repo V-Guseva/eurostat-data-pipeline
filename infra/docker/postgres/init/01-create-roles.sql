@@ -3,13 +3,28 @@
 \set ECHO all
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='staging_owner')
+    IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='staging_ro')
     THEN
-        CREATE ROLE staging_owner NOLOGIN;
+        CREATE ROLE staging_ro
+        NOSUPERUSER
+        NOCREATEDB
+        NOCREATEROLE
+        LOGIN
+        PASSWORD 'dsf78%$fd';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='staging_rw')
     THEN
-        CREATE ROLE staging_rw NOLOGIN;
+        CREATE ROLE staging_rw
+        NOLOGIN
+        INHERIT;
+        GRANT staging_ro TO staging_rw;
+    END IF;
+        IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='staging_owner')
+    THEN
+        CREATE ROLE staging_owner
+        NOLOGIN
+        INHERIT;
+        GRANT staging_rw to staging_owner;
     END IF;
     IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='staging_airflow')
     THEN
@@ -22,17 +37,6 @@ BEGIN
         INHERIT;
         GRANT staging_rw to staging_airflow;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='user_staging')
-    THEN
-        CREATE ROLE user_staging
-            NOSUPERUSER
-            NOCREATEDB
-            NOCREATEROLE
-            INHERIT
-            LOGIN
-            PASSWORD 'user_staging';
-    END IF;
-
 
     IF NOT EXISTS (SELECT 1 FROM PG_ROLES WHERE rolname='owner_ods')
     THEN
