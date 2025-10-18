@@ -1,21 +1,37 @@
+import re
 import pandas as pd
 
 from utils.helper import split_domain, convert_to_datetime
 
+#TODO move to utils
+def convert_to_datetime(series):
+    cleaned = series.astype('str').str.replace(r'([+-]\d{2}):(\d{2})', r'\1:\2', regex=True)
+    return pd.to_datetime(cleaned, errors='coerce', utc=True)
 
-def clean_catalog(df:pd.DataFrame) -> pd.DataFrame:
-    df: pd.DataFrame = df.dropna(subset=['code','title'])
-    df = df[~df['code'].str.contains('\\$DV', na = False)]
-    ## split data
-    df[['start_year','start_period']] = df['data start'].str.split('-',n=1,expand=True)
-    df[['end_year','end_period']] = df['data end'].str.split('-',n=1,expand=True)
-    df['domain'] = df['code'].apply(split_domain)
-    ## set data types
-    df['start_year'] = pd.to_numeric(df['start_year'], errors='coerce')
-    df['end_year'] = pd.to_numeric(df['end_year'], errors='coerce')
-    df['last table structure change'] = convert_to_datetime(df['last table structure change'])
-    df['last update of data'] = convert_to_datetime(df['last update of data'])
+def get_period(code):
+    match = re.match(r"^([A-Z]+?)([AQ])+(_)+(.*)",code)
+    if match:
+        return  match.group(2)
+    match2 = re.match(r"^([A-Z_0-9])+(_)+([AQ])",code)
+    if match2:
+        return match2.group(3)
+    return None
+
+def clean_eurostat_catalog(df:pd.DataFrame) -> pd.DataFrame:
+    # set types and rename
     df['title'] = df['title'].astype('str')
+    df['code'] = df['code'].astype('str')
+    df['last_update_timestamp'] = convert_to_datetime(df['last update of data'])
+    df['last_structure_change_timestamp'] = convert_to_datetime(df['last table structure change'])
+    df['start_year'] = pd.to_numeric(df['data start'], errors='coerce')
+    df['end_year'] = pd.to_numeric(df['data end'], errors='coerce')
+    df = df.drop(columns=['data start', 'data end', 'last update of data', 'last table structure change','type'])
+    #remove derived data sets
+    df = df[~df['code'].str.contains('\\$DV', na=False)]
+    df['period'] = df["code"].apply(get_period)
+    df["period"] = df.apply(lambda x: 'ytd' if pd.isna(x["start_year"]) else x["period"], axis=1)
+    df["start_year"] = df.apply(lambda x: x["last_update_timestamp"].year, axis=1)
+    df["end_year"] = df.apply(lambda x: x["last_update_timestamp"].year, axis=1)
     return df
 
 
