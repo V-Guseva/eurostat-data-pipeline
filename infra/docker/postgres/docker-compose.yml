@@ -1,0 +1,43 @@
+# Use postgres/example user/password credentials
+networks:
+  data_network:
+    external: true
+    name: data_network
+
+services:
+
+  postgres:
+    image: postgres:15.14
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    container_name: db
+    networks:
+      - data_network
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: demo
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d/
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5555
+
+  adminer:
+    image: adminer
+    restart: always
+    networks:
+      - data_network
+    ports:
+      - 8080:8080
+
+volumes:
+  pgdata:
+
