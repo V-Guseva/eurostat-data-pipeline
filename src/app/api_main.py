@@ -1,18 +1,24 @@
-from typing import Any
+from io import StringIO
 
+import pandas as pd
+import requests
 import uvicorn
 from fastapi import FastAPI
 
-import extract.worldbank
-from pipeline.pipeline import run_all, run_catalog_pipeline
+from app.routers.eurostat_ds import router_eu_ds
+from app.routers.health import router
+
+
 
 app = FastAPI()
+app.include_router(router)
+app.include_router(router_eu_ds)
+
 
 
 @app.get("/")
 async def root():
     return {"message": "Eurostat API is running"}
-
 
 @app.get("/ping")
 async def ping():
@@ -21,21 +27,28 @@ async def ping():
 
 @app.get("/run-pipeline/all")
 async def run_pipelines():
-    result = run_all()
+    result = None #run_all()
     return {"status": "success", "result": result}
 
 @app.get("/run-pipeline/{code}")
 async def run_pipeline(code: str):
     if 'catalog' in code:
         try:
-            return {'status': "susses", 'message': run_catalog_pipeline()}
+            return {'status': "susses", 'message': "Test message"} #run_catalog_pipeline()}
         except Exception as e:
             return {'status': "error", 'message': str(e)}
     return None
 
 @app.get("/run-pipeline/oecd")
 async def run_pipelile_oecd():
-    return extract.worldbank.load()
+    url = "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI/.M.LI...AA...H?startPeriod=2023-02&dimensionAtObservation=AllDimensions&format=csvfilewithlabels"
+    # Fetch data
+    response = requests.get(url)
+    # Load into pandas DataFrame
+    df = pd.read_csv(StringIO(response.text))
+    # Display first few rows
+    print(df.head())
+    return df
 
 
 

@@ -1,6 +1,7 @@
 import datetime
 from typing import Optional, ClassVar
 
+from jinja2.nodes import Literal
 from sqlalchemy import Integer, DateTime, Text, MetaData, CheckConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped
 from sqlalchemy.testing.schema import mapped_column
@@ -31,7 +32,7 @@ class Eurostat_ds(Base):
     last_structure_change_timestamp :Mapped[datetime.datetime] = mapped_column(DateTime, primary_key=False)
     start_year :Mapped[Optional[int]] = mapped_column(Integer, primary_key=False)
     end_year :Mapped[Optional[int]] = mapped_column(Integer, primary_key=False)
-    period : Mapped[Optional[str]] = mapped_column(Text, primary_key=False)
+    period : Mapped[Optional[Literal['Y','Q','A','YTD']]] = mapped_column(Text, primary_key=False)
     load_date : Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, primary_key=False)
     ORDERABLE: ClassVar[dict[str, any]] = {
         "code": code,

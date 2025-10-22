@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from typing import Optional, Annotated, Union, List
+from typing import Optional, Annotated, Union, List, Literal
 
 from fastapi import Query, APIRouter, HTTPException
 from fastapi.params import Depends
@@ -12,7 +12,7 @@ from app.models.eurostat_ds import Eurostat_ds
 
 router_eu_ds = APIRouter(prefix="/eu_ds", tags=["eu_ds"])
 
-
+#TODO add response_model
 @router_eu_ds.get("/ds", status_code=200)
 async def get_eurostat_ds(code: Annotated[
                             Optional[str],
@@ -49,16 +49,16 @@ async def get_eurostat_ds(code: Annotated[
     :param order_by: order the records according to the order
     :return:
     For example:
-    http://0.0.0.0:8000/eu_df/ds?updated_after=2025-10-01
-    http://0.0.0.0:8000/eu_df/ds?code=LFST
-    http://0.0.0.0:8000/eu_df/ds?code=LFST&updated_after=2025-10-01
-    http://0.0.0.0:8000/eu_df/ds?start_year=2021&start_year=2022
+    http://0.0.0.0:8000/eu_ds/ds?updated_after=2025-10-01
+    http://0.0.0.0:8000/eu_ds/ds?code=LFST
+    http://0.0.0.0:8000/eu_ds/ds?code=LFST&updated_after=2025-10-01
+    http://0.0.0.0:8000/eu_ds/ds?start_year=2021&start_year=2022
     http://0.0.0.0:8000/eu_ds/ds?period=A&order_by=start_year&limit=5&offset=5
     """
     try:
         stmt = select(Eurostat_ds)
         if code is not None:
-            stmt = stmt.filter(Eurostat_ds.code.contains(code,autoescape=True))
+            stmt = stmt.filter(func.upper(Eurostat_ds.code).contains(code.upper(),autoescape=True))
         if start_year is not None:
             stmt = stmt.filter(Eurostat_ds.start_year.in_(start_year))
         if updated_after is not None:
@@ -70,10 +70,11 @@ async def get_eurostat_ds(code: Annotated[
             if not col:
                 raise HTTPException(422, f"Unsupported order_by: {order_by}")
             stmt = stmt.order_by(col.desc() if direction == "desc" else col.asc())
+        else:
+            stmt = stmt.order_by(Eurostat_ds.last_update_timestamp.desc().Eurostat_ds.code.asc())
         stmt = stmt.limit(limit)
         stmt = stmt.offset(offset)
-        result = await dbsession.execute(stmt)
-        records = result.mappings().all()
+        records = await (dbsession.execute(stmt)).scalars().all()
         return records
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -85,6 +86,7 @@ async def inspect_eurostat_ds_db(session: AsyncSession = Depends(get_session)):
 
     def do_reflect(sync_conn):
         insp = sa_inspect(sync_conn)
+        # Remove hardcode
         schema = "staging"
         table = "eurostat_ds"
         cols_out = []
@@ -112,7 +114,7 @@ async def get_eurostat_ds_count(group_by: Annotated[
                                 description="Group by mentioned fields")
                           ]=None,
                                 order_by: Annotated[Optional[str],Query(description="Order by")]=None,
-                                direction: Annotated[Optional[str],Query(description="Direction, if should be in descending order use desc")]="asc",
+                                direction: Annotated[Literal["asc", "desc"],Query(description="Sort direction (asc,desc)")]="asc",
                                 dbsession: AsyncSession = Depends(get_session)):
     """
     :param group_by column names to group by
@@ -139,7 +141,7 @@ async def get_eurostat_ds_count(group_by: Annotated[
             col = Eurostat_ds.order_column(order_by)
             if not col:
                 raise HTTPException(422, f"Unsupported order_by: {order_by}")
-        stmt = stmt.order_by(col.desc() if direction == "desc" else col.asc())
+            stmt = stmt.order_by(col.desc() if direction == "desc" else col.asc())
         result = await dbsession.execute(stmt)
         records = result.mappings().all()
         return records
