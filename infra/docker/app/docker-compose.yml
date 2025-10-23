@@ -1,0 +1,23 @@
+networks:
+  data_network:
+    external: true
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: app:latest
+    environment:
+      APP_ENV: Dev
+      LOG_LEVEL: INFO
+      # TODO move to common env
+      DB_HOST: postgres
+      DB_PORT: 5555
+    volumes:
+     - ../../../src/app:/app
+    ports:
+    - "8000:8000"
+    command: uvicorn app.api_main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - data_network

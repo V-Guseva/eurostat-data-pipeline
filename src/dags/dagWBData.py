@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from airflow.sdk import task, dag
 from airflow.utils.log.logging_mixin import LoggingMixin
 
-from dags.Helper import __connect_s3
+from dags.helper import _connect_s3
 from extract.worldbank import load_exp_gdp
 
 log = LoggingMixin().log
@@ -13,7 +13,7 @@ log = LoggingMixin().log
 @task
 def extract():
     df = load_exp_gdp()
-    s3 = __connect_s3("raw")
+    s3 = _connect_s3("raw")
     bytes_buffer = io.BytesIO()
     df.to_parquet(path=bytes_buffer, engine="pyarrow")
     bytes_buffer.seek(0)

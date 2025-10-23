@@ -3,4 +3,8 @@ name = "eurostat-data-pipeline"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "psycopg>=3.2.10",
+    "sqlalchemy==2.0.44",
+    "sqlalchemy-utils==0.42.0",
+]

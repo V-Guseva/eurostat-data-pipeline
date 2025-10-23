@@ -1,12 +1,7 @@
 import re
 import pandas as pd
 
-from utils.helper import split_domain, convert_to_datetime
-
-#TODO move to utils
-def convert_to_datetime(series):
-    cleaned = series.astype('str').str.replace(r'([+-]\d{2}):(\d{2})', r'\1:\2', regex=True)
-    return pd.to_datetime(cleaned, errors='coerce', utc=True)
+from utils.helper import convert_to_datetime
 
 def get_period(code):
     match = re.match(r"^([A-Z]+?)([AQ])+(_)+(.*)",code)
@@ -29,7 +24,7 @@ def clean_eurostat_catalog(df:pd.DataFrame) -> pd.DataFrame:
     #remove derived data sets
     df = df[~df['code'].str.contains('\\$DV', na=False)]
     df['period'] = df["code"].apply(get_period)
-    df["period"] = df.apply(lambda x: 'ytd' if pd.isna(x["start_year"]) else x["period"], axis=1)
+    df["period"] = df.apply(lambda x: 'YTD' if pd.isna(x["start_year"]) else x["period"], axis=1)
     df["start_year"] = df.apply(lambda x: x["last_update_timestamp"].year, axis=1)
     df["end_year"] = df.apply(lambda x: x["last_update_timestamp"].year, axis=1)
     return df
