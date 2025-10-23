@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 log = LoggingMixin().log
 
 
-def __connect_s3(busket_name):
+def _connect_s3(busket_name):
     """
     Returns s3 connection after checking availability of minio and minio bucket.
     :param busket_name::
@@ -29,7 +29,7 @@ def __connect_s3(busket_name):
     return s3
 
 
-def __getStorageOptions():
+def _getStorageOptions():
     return {
         "key": os.getenv('MINIO_ACCESS_KEY'),
         "secret": os.getenv('MINIO_SECRET_KEY'),
