@@ -1,10 +1,8 @@
 import os
 
 import boto3
-from airflow.utils.log.logging_mixin import LoggingMixin
 from botocore.exceptions import ClientError
 
-log = LoggingMixin().log
 
 
 def _connect_s3(busket_name):

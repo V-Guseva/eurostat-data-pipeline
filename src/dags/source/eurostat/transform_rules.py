@@ -1,18 +1,15 @@
 import re
 import pandas as pd
 
-from utils.helper import convert_to_datetime
+from utils.transform_shared import convert_to_datetime, get_period
 
-def get_period(code):
-    match = re.match(r"^([A-Z]+?)([AQ])+(_)+(.*)",code)
-    if match:
-        return  match.group(2)
-    match2 = re.match(r"^([A-Z_0-9])+(_)+([AQ])",code)
-    if match2:
-        return match2.group(3)
-    return None
 
 def clean_eurostat_catalog(df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Do cleaning up dataset catalog
+    :param df: catalog
+    :return: pd.DataFrame formatted and cleaned
+    """
     # set types and rename
     df['title'] = df['title'].astype('str')
     df['code'] = df['code'].astype('str')
