@@ -3,8 +3,9 @@ import posixpath
 from airflow.sdk import Variable
 
 _LAYER_TO_BUCKET = {
-    "bronze": "raw_bucket",
-    "silver": "staging_bucket"
+    "landing":"landing",
+    "bronze": "bronze",
+    "silver": "silver"
 }
 
 def _get_bucket_name(layer: str) -> str:
@@ -37,6 +38,19 @@ def _build_key(
     bucket = _get_bucket_name(layer)
     key = posixpath.join(source, dataset, layer, f"{granularity}={ds}", run_id, filename)
     return bucket, key
+
+def landing_key(source: str, dataset: str, ds: str, run_id: str, filename: str):
+    """
+    Construct S3 bucket/key path for data layer.
+    :param source:
+    :param dataset:
+    :param ds:
+    :param run_id:
+    :param filename:
+    :return: (bucket_name, key)
+    """
+    return _build_key("landing", source, dataset, ds, run_id, filename)
+
 #TODO pytest
 def bronze_key(source: str, dataset: str, ds: str, run_id: str, filename: str):
     """
